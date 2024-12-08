@@ -34,7 +34,7 @@ jobs:
         id: versioning
         uses: oss-actions/auto-semver@v0.1.11
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPO_TOKEN }}
           repository: ${{ github.repository }}
           type: ${{ env.type }}
 
@@ -53,7 +53,7 @@ jobs:
           git tag ${{ steps.versioning.outputs.version }}
           git push origin ${{ steps.versioning.outputs.version }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -63,7 +63,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.REPO_TOKEN }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
