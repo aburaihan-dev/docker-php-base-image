@@ -32,7 +32,7 @@ jobs:
 
       - name: Run auto-semver
         id: versioning
-        uses: oss-actions/auto-semver@v1
+        uses: oss-actions/auto-semver@v0.1.11
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
