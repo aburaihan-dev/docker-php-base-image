@@ -1,8 +1,11 @@
 name: Weekly Build and Push Docker Image
 
 on:
-  schedule:
-    - cron: '0 0 * * 0' # Runs every Sunday at midnight UTC
+  push:
+    branches:
+      - main
+  # schedule:
+  #   - cron: '0 0 * * 0' # Runs every Sunday at midnight UTC
 
 jobs:
   build-and-push:
@@ -16,6 +19,41 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Determine Version Bump Type
+        id: get_bump_type
+        run: |
+          echo "type=patch" >> $GITHUB_ENV
+          if git log -1 --pretty=%B | grep -q 'bump: major'; then
+            echo "type=major" >> $GITHUB_ENV
+          elif git log -1 --pretty=%B | grep -q 'bump: minor'; then
+            echo "type=minor" >> $GITHUB_ENV
+          fi
+
+      - name: Run auto-semver
+        id: versioning
+        uses: oss-actions/auto-semver@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          type: ${{ env.type }}
+
+      - name: Print Previous and Next Versions
+        if: github.ref != steps.versioning.outputs.previous_version_ref
+        env:
+          NEXT_VERSION: ${{ steps.versioning.outputs.version }}
+          PREVIOUS_VERSION: ${{ steps.versioning.outputs.previous_version }}
+        run: |
+          echo "Previous version: $PREVIOUS_VERSION"
+          echo "Next version: $NEXT_VERSION"
+
+      - name: Create Git Tag
+        if: github.ref != steps.versioning.outputs.previous_version_ref
+        run: |
+          git tag ${{ steps.versioning.outputs.version }}
+          git push origin ${{ steps.versioning.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
