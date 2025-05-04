@@ -12,10 +12,11 @@ RUN apt-get update && \
       unzip \
       supervisor \
       procps \
-      netcat-openbsd && \
-    rm -rf /var/lib/apt/lists/*
+      netcat-openbsd \
+      librabbitmq4 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install build dependencies, compile PHP extensions, and then remove build dependencies
+# Install build dependencies, compile PHP extensions, then remove them
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       libzip-dev \
@@ -30,7 +31,6 @@ RUN apt-get update && \
     docker-php-ext-install zip sockets pcntl mysqli pdo pdo_mysql && \
     pecl install amqp redis && \
     docker-php-ext-enable amqp redis && \
-    # Remove build dependencies
     apt-get purge -y \
       libzip-dev \
       libssl-dev \
