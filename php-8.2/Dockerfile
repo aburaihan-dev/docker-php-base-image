@@ -9,6 +9,7 @@ RUN apt-get update && \
       bash \
       git \
       zip \
+      unzip \
       supervisor \
       procps \
       netcat-openbsd && \
