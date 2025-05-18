@@ -51,6 +51,7 @@ RUN { \
       echo "max_execution_time=300"; \
       echo "post_max_size=50G"; \
       echo "upload_max_filesize=50G"; \
+      echo "memory_limit=1G"; \ 
     } > /usr/local/etc/php/conf.d/custom.ini
 
 # Prepare directories for Nginx logs and adjust permissions
