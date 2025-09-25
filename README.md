@@ -1,6 +1,8 @@
 
 # Docker PHP Base Image
 
+[![Semantic Versioning, Docker Build, Push, and Scan](https://github.com/aburaihan-dev/docker-php-base-image/actions/workflows/build-and-push-docker-image.yaml/badge.svg)](https://github.com/aburaihan-dev/docker-php-base-image/actions/workflows/build-and-push-docker-image.yaml)
+
 `docker-php-base-image` is a streamlined Docker base image for PHP 8.2 applications. It includes essential dependencies, optimized configurations, and automated CI/CD workflows for building, versioning, and deploying Docker images.
 
 ## Features
