@@ -1,0 +1,22 @@
+name: Scheduled Rebuild
+
+on:
+  schedule:
+    # Run every Monday at 10:00 UTC (after Dependabot runs)
+    - cron: '0 10 * * 1'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  trigger-rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Trigger Main Workflow
+        run: |
+          echo "Triggering scheduled rebuild to pick up latest base images"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "bump: patch - scheduled rebuild for latest base images"
+          git push

@@ -1,0 +1,54 @@
+version: 2
+updates:
+  # Docker base image updates for PHP 8.2
+  - package-ecosystem: "docker"
+    directory: "/php-8.2"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "php-8.2"
+    commit-message:
+      prefix: "bump: patch"
+
+  # Docker base image updates for PHP 8.3
+  - package-ecosystem: "docker"
+    directory: "/php-8.3"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "php-8.3"
+    commit-message:
+      prefix: "bump: patch"
+
+  # Docker base image updates for PHP 8.4
+  - package-ecosystem: "docker"
+    directory: "/php-8.4"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "php-8.4"
+    commit-message:
+      prefix: "bump: patch"
+
+  # GitHub Actions updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "bump: patch"
