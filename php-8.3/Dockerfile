@@ -1,5 +1,5 @@
 # Optimized Debian-based image for Laravel 11
-FROM php:8.2-fpm-bookworm AS base
+FROM php:8.3-fpm-bookworm AS base
 
 # Install runtime dependencies and Laravel-required libraries
 RUN apt-get update && \

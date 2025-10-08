@@ -1,44 +1,38 @@
-# Optimized Debian-based image for Laravel 11
-FROM php:8.2-fpm-bookworm AS base
+# Optimized Alpine-based image for Laravel 11
+FROM php:8.4-fpm-alpine AS base
 
-# Install runtime dependencies and Laravel-required libraries
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      nginx \
-      curl \
-      bash \
-      git \
-      zip \
-      unzip \
-      supervisor \
-      procps \
-      netcat-openbsd \
-      # Runtime libraries (smaller than dev packages)
-      librabbitmq4 \
-      libzip4 \
-      libpng16-16 \
-      libjpeg62-turbo \
-      libfreetype6 \
-      libicu72 \
-      libonig5 \
-    && rm -rf /var/lib/apt/lists/*
+# Install runtime dependencies (Alpine packages are much smaller)
+RUN apk add --no-cache \
+    nginx \
+    curl \
+    bash \
+    git \
+    zip \
+    unzip \
+    supervisor \
+    procps \
+    # Runtime libraries for PHP extensions
+    rabbitmq-c \
+    libzip \
+    libpng \
+    libjpeg-turbo \
+    freetype \
+    icu-libs \
+    oniguruma \
+    && rm -rf /var/cache/apk/*
 
 # Install build dependencies, compile PHP extensions, then remove them
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      libzip-dev \
-      libssl-dev \
-      librabbitmq-dev \
-      pkg-config \
-      autoconf \
-      g++ \
-      make \
-      # Laravel-recommended extensions
-      libpng-dev \
-      libjpeg-dev \
-      libfreetype6-dev \
-      libicu-dev \
-      libonig-dev \
+RUN apk add --no-cache --virtual .build-deps \
+    $PHPIZE_DEPS \
+    libzip-dev \
+    openssl-dev \
+    rabbitmq-c-dev \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    icu-dev \
+    oniguruma-dev \
+    linux-headers \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
       zip \
@@ -54,25 +48,11 @@ RUN apt-get update && \
       bcmath \
     && pecl install amqp redis \
     && docker-php-ext-enable amqp redis \
-    # Clean up build dependencies
-    && apt-get purge -y \
-      libzip-dev \
-      libssl-dev \
-      librabbitmq-dev \
-      pkg-config \
-      autoconf \
-      g++ \
-      make \
-      libpng-dev \
-      libjpeg-dev \
-      libfreetype6-dev \
-      libicu-dev \
-      libonig-dev \
-    && apt-get autoremove -y \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /usr/share/man/*
+    # Clean up build dependencies (saves ~100MB+)
+    && apk del .build-deps \
+    && rm -rf /tmp/* /var/cache/apk/*
 
-# Install Composer from the official Composer image (multi-stage copy)
+# Install Composer from official image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Copy entrypoint script that generates PHP config from ENV vars
@@ -95,23 +75,22 @@ RUN { \
       echo "decorate_workers_output = no"; \
     } >> /usr/local/etc/php-fpm.d/www.conf
 
-# Configure Nginx for Laravel (Debian uses different paths)
-RUN rm -f /etc/nginx/sites-enabled/default && \
-    mkdir -p /var/log/nginx /var/cache/nginx && \
-    chown -R www-data:www-data /var/log/nginx /var/cache/nginx /var/lib/nginx
+# Configure Nginx for Laravel (Alpine uses different paths)
+RUN rm -f /etc/nginx/http.d/default.conf && \
+    mkdir -p /var/log/nginx /var/cache/nginx /run/nginx && \
+    chown -R nginx:nginx /var/log/nginx /var/cache/nginx /var/lib/nginx /run/nginx
 
 # Copy Nginx configuration
-COPY configs/nginx/laravel-debian.conf /etc/nginx/sites-available/laravel
-RUN ln -s /etc/nginx/sites-available/laravel /etc/nginx/sites-enabled/laravel
+COPY configs/nginx/laravel.conf /etc/nginx/http.d/laravel.conf
 
-# Configure Supervisor
-RUN mkdir -p /var/log/supervisor
+# Configure Supervisor (Alpine uses different paths)
+RUN mkdir -p /var/log/supervisor /etc/supervisor/conf.d
 
 # Copy Supervisor configuration
 COPY configs/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Prepare application directories with proper permissions
-# Note: www-data user and group already exist in php:8.2-fpm-bookworm
+# Note: www-data user and group already exist in php:8.2-fpm-alpine
 RUN mkdir -p /app/public /app/storage /app/bootstrap/cache && \
     chown -R www-data:www-data /app
 

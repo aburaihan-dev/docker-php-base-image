@@ -1,0 +1,36 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CHANGELOG.md
+*.md
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# IDE & Editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+tests
+phpunit.xml
+.phpunit.result.cache
+
+# Development files
+docker-compose.yml
+Dockerfile*
+.dockerignore
+.env.example
+
+# Keep configs - they are needed for the build
+!configs/

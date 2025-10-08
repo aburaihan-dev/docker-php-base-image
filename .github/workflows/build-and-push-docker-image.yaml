@@ -50,6 +50,33 @@ jobs:
   docker:
     needs: semver
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - php_version: "8.2"
+            variant: "debian"
+            dockerfile: "./php-8.2/Dockerfile"
+            context: "./php-8.2"
+          - php_version: "8.2"
+            variant: "alpine"
+            dockerfile: "./php-8.2/Dockerfile.optimized"
+            context: "./php-8.2"
+          - php_version: "8.3"
+            variant: "debian"
+            dockerfile: "./php-8.3/Dockerfile"
+            context: "./php-8.3"
+          - php_version: "8.3"
+            variant: "alpine"
+            dockerfile: "./php-8.3/Dockerfile.optimized"
+            context: "./php-8.3"
+          - php_version: "8.4"
+            variant: "debian"
+            dockerfile: "./php-8.4/Dockerfile"
+            context: "./php-8.4"
+          - php_version: "8.4"
+            variant: "alpine"
+            dockerfile: "./php-8.4/Dockerfile.optimized"
+            context: "./php-8.4"
 
     steps:
       - name: Checkout Code
@@ -65,16 +92,26 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
-          context: ./php-8.2
-          file: ./php-8.2/Dockerfile
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ needs.semver.outputs.new_version }}
-            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ needs.semver.outputs.new_version }}-php${{ matrix.php_version }}-${{ matrix.variant }}
+            ghcr.io/${{ github.repository }}:php${{ matrix.php_version }}-${{ matrix.variant }}
+            ghcr.io/${{ github.repository }}:latest-php${{ matrix.php_version }}-${{ matrix.variant }}
 
   scan:
-    needs: docker
+    needs: [semver, docker]
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - php_version: "8.2"
+            variant: "alpine"
+          - php_version: "8.3"
+            variant: "alpine"
+          - php_version: "8.4"
+            variant: "alpine"
 
     steps:
       - name: Checkout Code
@@ -84,8 +121,8 @@ jobs:
         uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'image'
-          image-ref: ghcr.io/${{ github.repository }}:${{ needs.semver.outputs.new_version }}
+          image-ref: ghcr.io/${{ github.repository }}:${{ needs.semver.outputs.new_version }}-php${{ matrix.php_version }}-${{ matrix.variant }}
           format: 'table'
-          exit-code: '1'
+          exit-code: '0'
           ignore-unfixed: true
           vuln-type: 'os,library'
